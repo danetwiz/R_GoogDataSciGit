@@ -23,7 +23,16 @@ ggplot(data=penguins,aes(x=flipper_length_mm,y=body_mass_g)) + geom_point(aes(sh
 ggplot(data=penguins,aes(x=flipper_length_mm,y=body_mass_g)) + geom_point(aes(shape=species,color=species)) + facet_wrap(~species) + 
   labs(title="Palmer Penguins: Body Mass vs. Flipper Length")
 
+
+#View Data
 head('palmerpenguins')
+rownames(penguins)
+colnames(penguins)
+View(penguins)
+penguins[42,]  #show row 42  or the value name in ["Adelie",]
+penguins["Adelie",] 
+penguins[29:34,]
+str(penguins)
 
 ## Now R
 library('palmerpenguins')
@@ -160,7 +169,7 @@ penguins %>%     #janitor package  rename column names
 ## arrage()  groupby()    filter()
 penguins2 <- penguins %>% 
   arrange(-bill_length_mm)
-view(penguins)
+View(penguins)
 penguins %>% group_by(island) %>% drop_na() %>% summarize(mean_bill_length_mm = mean(bill_length_mm))
 
 penguins %>% group_by(island) %>% drop_na() %>% summarize(mean_bill_length_mm = max(bill_length_mm))
@@ -170,14 +179,19 @@ penguins %>% group_by(species, island) %>% drop_na() %>% summarize(max_bill = ma
 penguins %>% filter(species =="Adelie") %>% drop_na()
 
 
+###manually create a data frame.  3 lists, then a assemble into a data frame
+id <- c(1:5)
+full_name <- c("mike johnson", "Damien Augustin", "Robert Sledge", "dArren Jessie", "Ben Folds")
+job_title <- c("Producer", "Data Analyst", "Bassist", "Drummer", "Lead Singer")
+employees <- data.frame(id,full_name,job_title)
+View(employees)
+#####Fixing these full_names to PROPER is perhaps for another time or Python...
 
+##################################################################################################################
+##################################################################################################################
+##################################################################################################################
 
-
-
-
-
-
-
+#Now lets try 
 
 
 

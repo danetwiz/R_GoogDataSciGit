@@ -35,7 +35,7 @@ penguins[29:34,]
 str(penguins)
 
 ## Now R
-library('palmerpenguins')
+library(palmerpenguins)
 data(package = "palmerpenguins")
 summary(penguins)
 View(penguins)
@@ -186,24 +186,196 @@ job_title <- c("Producer", "Data Analyst", "Bassist", "Drummer", "Lead Singer")
 employees <- data.frame(id,full_name,job_title)
 View(employees)
 #####Fixing these full_names to PROPER is perhaps for another time or Python...
+##Separate column (split column) and unite columns (combine columns)
+separate(df, colname, into = c('first_name','last_name'), sep=' ')
+unite(df,'newcolname',col1,col2, sep=' ')
+
+
+as.tibble(data)
+path_to_file("penguins_raw.csv")    #base R path to file  get file path
+penguins <- read.csv(path_to_file("penguins.csv"))
+
+#####rm all objects in R environment delete all objects in global environtment
+rm(list = ls(all.names = TRUE))
+
+
+#Anscombe's quartet exercise
+install.packages('Tmisc')
+library(Tmisc)
+data(quartet)
+View(quartet)
+library(tidyverse) 
+
+quartet %>% 
+    group_by(set) %>% 
+    summarize(mean(x),sd(x),mean(y),sd(y),cor(x,y))
+
+#Using R functions to check for Bias
+#This is a good way to compare actual results to predicted results... shows the average adjustment to the prediction to bring it in line
+install.packages("SimDesign")
+library(SimDesign)
+
+actual_t <- c(68, 70, 72, 71,67,70)
+pred_t_low <- c(67,69,71,70, 66,59)
+pred_t_high <- c(69,71,73,72,68,81)
+
+bias(actual_t, pred_t_low)  #positive number, eg the necessary fudge factor
+bias(actual_t, pred_t_high) #neg num.
+
+
+##################################################################################################################
+#ggplot2: data visualizations
+#ploty - wide rang of solutions #lattice #RGL #Dygraphs #Leaflet #Highcharter #Patchwork #gganimate #ggridges
+library(palmerpenguins)
+library(tidyverse)
+penguins <- read.csv("penguins.csv")
+
+#x,y related data plots
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g)) +  geom_point() + geom_smooth()
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g)) +  geom_bin_2d()
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g)) +  geom_density_2d_filled()
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g)) +  geom_line()
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g)) +  geom_tile()
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g)) +  geom_smooth()
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g)) +  geom_polygon()
+
+ggplot(data = penguins) +
+    geom_point(mapping = aes(x  =flipper_length_mm, y = body_mass_g),color="red")
+
+ggplot(data = penguins) +
+  geom_point(mapping = aes(x  =flipper_length_mm, y = body_mass_g, color=species, shape = species , size = species)) 
+
+ggplot(data = penguins) +
+  geom_point(mapping = aes(x  =flipper_length_mm, y = body_mass_g, color=species, shape = species , alpha = species)) 
+
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g, linetype=species, color=species)) +  geom_smooth()
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g, linetype=species, color=species)) +  geom_smooth() +
+    labs(title = "Palmer Penguins", x = "Flipper Length (mm)", y = "Body Mass (g)")
+
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g, linetype=species, color=species)) +  geom_point() 
+ggplot(data = penguins, mapping = aes(x = flipper_length_mm, y = body_mass_g, linetype=species, color=species)) +  geom_jitter() 
+
+
 
 ##################################################################################################################
 ##################################################################################################################
 ##################################################################################################################
 
-#Now lets try 
+#Now lets try a time series project from youtube to energy in germany
+
+en_data <- read.csv("opsd_germany_daily.txt", header = TRUE,row.names = "Date")
+en_data[c("2015-06-30","2015-07-04"),]
+summary(en_data)
+
+#now lets bring it in without using read_date as row names
+en_data2 <- read.csv("opsd_germany_daily.txt", header = TRUE)
+#see attributes of Date column
+str(en_data2)
+str(en_data2$Date)
+
+#rename key col
+names(en_data2)[1] <- 'read_date'
+
+#notice it is in the char format?  why not mutate?
+library(tidyverse)
+
+
+en_data2 <-
+  en_data2 %>% mutate(read_date = as.Date(read_date))
+str(en_data2$read_date)
+
+#lets create a Year Column
+en_data2 <-
+  en_data2 %>% mutate(Year =  as.numeric(format(read_date,"%Y")))  #Yes %Y should be uppercase like Ymd
+tail(en_data2)
+en_data2 <-
+  en_data2 %>% mutate(month =  as.numeric(format(read_date,"%m")))  #m is lowercase
+#fix capital Y in Year to lower case!
+en_data2<- 
+  en_data2 %>% rename_with(tolower,.cols="Year")  
+
+#Add a column of a datetime component another way: 1) strip the dataframe's column into a list
+german_dates <- c(en_data2$read_date)
+#format the list for the day
+day <- as.numeric(format(german_dates,'%d'))
+# use cbind to append the list "day" back onto df
+en_data2 <- cbind(en_data2,day)           #column bind  - cbind()
+head(en_data2)
+
+#now how about we try to roll this into a function SplitDateIntoYmdCols
+#lets also use Roxygen to make it autocomplete callable and documented.
+# https://www.youtube.com/watch?v=zvLcEndh0yM
+
+SplitDateIntoYmdCols <- function(df,DateCol) {
+  #Arg Datecol from the dataframe df used to append year month date columns
+  #eg "2022-01-05"  --> Cbind(c(Year = 2022, month = 01, day = 05))
+  
+  df <-
+    df %>% mutate(DateCol2xyz = as.Date(df[, DateCol]))   #Datecol2xyz is a hardcode column, no way
+                                                        #it seems to pass the argument and abstract it
+  df <-
+    df %>% mutate(Year =  as.numeric(format(DateCol2xyz,"%Y")))
+  df <-
+    df %>% mutate(month =  as.numeric(format(DateCol2xyz,"%m")))
+  df <-
+    df %>% mutate(day =  as.numeric(format(DateCol2xyz,"%d")))
+ 
+  #drop column DateCol2xyz (hardcoded in function by the first mutate, mutate not a good function)
+  df <- subset(df, select = -c(DateCol2xyz))
+                                                    }
+#Test the function I just wrote
+en_data3 <- SplitDateIntoYmdCols(en_data2,"read_date")
+str(en_data3)
+
+##################################################################################################
+####Trying to pass variables into functions is not easy in R seem like it may vary across packages
+var1 <- "read_date"
+library(dplyr)
+varName <- as.name(var1)
+enquo_varName <- enquo(varName)
+
+en_data3 <-
+  en_data2 %>% mutate(newfieldname = as.Date(!!varName))  #don't think this one works either
+                                                          #even with !!enquo_varName
+#or
+df <-
+  df %>% mutate(DateCol2xyz = as.Date(df[, DateCol]))
+#Then there is this "accross" method on stack overflow which i didn't seem to get to work but
+#might come in handy so other strange place
+my_summarise2 <- function(df, group_by_var) {
+  df %>% group_by(across({{ group_by_var }})) %>% 
+    summarise(mpg = mean(mpg))
+}
+################################################################################################
+
+#Create a new record (insert record) as a data.frame (leaving some columns out) and see what happens when we append it to en_data
+Year = c(2022); month = c(06); day = c(30);
+data.frame(Year,month,day) -> xyz
+en_data4 <- en_data3
+en_data4 <- rbind(en_data4,xyz)  #baaaad "numbers of columns of arguments do not match!"
+
+#or for 1 record, just insert a blank record and submit a compressed list insert record
+str(en_data4)
+en_data4[nrow(en_data4) +1,] = c(NA,NA,NA,NA,NA,2022,07,04)  #It won't accept: . or NULL
+tail(en_data4)
+#it might not like NA is first column
+#Remove a record using negative compression -c: df[-c(row_index_1, row_index_2),]
+#don't know row index number?  hows about an abstract reference with nrow?  (nrow counts number of rows)
+en_data5 <- en_data4[-c(nrow(en_data4)),]    #don't forget that last comma befor the matrix bracket close!
+tail(en_data5)
+
+#Remove last 3 records!!!!  delete last records  last number of records delete range of records
+en_data6 <- en_data5[-c((nrow(en_data5) -2):nrow(en_data5)),]
+tail(en_data6)
 
 
 
 
 
-
-
-
-
-
-
-
+rm(df_outtt)
+rm(xyz,Year,month,day)
+rm(en_data4)
+rm(df2,df_as_date,en_data3,en_data_norow,en_data2)
 
 
 
